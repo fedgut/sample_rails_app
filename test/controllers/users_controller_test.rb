@@ -30,6 +30,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     get users_path
     assert_redirect_to login_url
   end
+
   test 'should not allow the admin attribute to be edited from the web' do
     log_in_as(@other_user)
     assert_not @other_user.admin?
@@ -38,5 +39,27 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
                                             password_confirmation: FILL_IN,
                                             admin: FILL_IN } }
     assert_not @other_user.FILL_IN.admin?
+  end
+
+  test 'should rediect destroy action when not logged in' do
+    assert_no_difference 'User.count' do
+      delete user_path(@user)
+    end
+    assert_redirect_to login_url
+  end
+
+  test 'should redirec destroy when not loged in as admin' do
+    log_in_as(@other_user)
+    assert_no_difference 'User.count' do
+      delete user_path(@user)
+    end
+    assert_redirect_to root_url
+  end
+
+  test 'should allow admins to destroy users' do
+    log_in_as(@user)
+    assert_difference 'User.count', -1 do
+      delete user_path(@other_user)
+    end
   end
 end
